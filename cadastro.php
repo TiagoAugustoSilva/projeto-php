@@ -1,5 +1,4 @@
 <?php
-
 require_once("conexao.php");
 
 $idProduto = 0;
@@ -8,8 +7,6 @@ $descricao = '';
 $valor_unitario = '';
 $unidade_medida = '';
 
-
-
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $idProduto = isset($_POST['idProduto']) ? filter_input(INPUT_POST, "idProduto", FILTER_SANITIZE_NUMBER_INT) : null;
     $produto = filter_input(INPUT_POST, "produto", FILTER_SANITIZE_FULL_SPECIAL_CHARS);
@@ -17,43 +14,35 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $valor_unitario = filter_input(INPUT_POST, "valor_unitario", FILTER_SANITIZE_NUMBER_FLOAT);
     $unidade_medida = filter_input(INPUT_POST, "unidade_medida", FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 
-
-    if ($produto !== null && $descricao !== null) {
-        if ($idProduto) {
-            // Se estiver adicionando, insira os dados
-            $stm = $conn->prepare("INSERT INTO cadastrar_produto (produto, descricao, valor_unitario, unidade_medida) VALUES (:produto, :descricao, :valor_unitario, :unidade_medida)");
-        } else {
-            // Se estiver editando, atualize os dados
-            $stm = $conn->prepare("UPDATE cadastrar_produto SET produto=:produto, descricao=:descricao, valor_unitario=:valor_unitario, unidade_medida=:unidade_medida WHERE idProduto=:idProduto");
-            $stm->bindValue(':idProduto', $idProduto);
-        }
-
-        // Adicione as linhas de vinculação abaixo para garantir que todos os parâmetros sejam vinculados corretamente
-        $stm->bindValue(':produto', $produto);
-        $stm->bindValue(':descricao', $descricao);
-        $stm->bindValue(':valor_unitario', $valor_unitario);
-        $stm->bindValue(':unidade_medida', $unidade_medida);
-
-        $stm->execute();
-
-
-
-        header('Location: index.php');
-        exit;
+    if ($idProduto) {
+        // Se estiver editando, atualize os dados
+        $stm = $conn->prepare("UPDATE cadastrar_produto SET produto=:produto, descricao=:descricao, valor_unitario=:valor_unitario, unidade_medida=:unidade_medida WHERE idProduto=:idProduto");
+        $stm->bindValue(':idProduto', $idProduto);
     } else {
-        echo "Erro: Produto, descrição, valor unitário ou unidade de medida não foram recebidos corretamente.";
-        exit;
+        // Se não houver idProduto, insira um novo produto
+        $stm = $conn->prepare("INSERT INTO cadastrar_produto (produto, descricao, valor_unitario, unidade_medida) VALUES (:produto, :descricao, :valor_unitario, :unidade_medida)");
     }
+
+    // Adicione as linhas de vinculação abaixo para garantir que todos os parâmetros sejam vinculados corretamente
+    $stm->bindValue(':produto', $produto);
+    $stm->bindValue(':descricao', $descricao);
+    $stm->bindValue(':valor_unitario', $valor_unitario);
+    $stm->bindValue(':unidade_medida', $unidade_medida);
+
+    $stm->execute();
+
+    header('Location: index.php');
+    exit;
 }
 
 if (isset($_GET['idProduto'])) {
     $idProduto = filter_input(INPUT_GET, "idProduto", FILTER_SANITIZE_NUMBER_INT);
 
-
     if (!$idProduto) {
         header('Location: index.php');
         exit;
     }
+
     $stm = $conn->prepare('SELECT * FROM cadastrar_produto WHERE idProduto=:idProduto');
     $stm->bindValue(':idProduto', $idProduto);
     $stm->execute();
@@ -73,12 +62,11 @@ if (isset($_GET['idProduto'])) {
 
 include_once("./layout/_header.php");
 ?>
-
 <div class="card mt-4">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h5><?= $idProduto ? 'ID ' . $idProduto . ': Editar cadastrar_produto ' . $idProduto : 'Adicionar Produto' ?></h5>
+        <h5><?= $idProduto ? 'idProduto ' . $idProduto . ': Editar cadastrar_produto ' . $idProduto : 'Adicionar Produto' ?></h5>
         <?php if ($idProduto) : ?>
-            <a class="btn btn-warning" href="editar.php?idProduto=<?= $idProduto ?>">Editar</a>
+            <a class="btn btn-warning" href="cadastro.php?idProduto=<?= $idProduto ?>">Editar</a>
         <?php endif; ?>
     </div>
 
@@ -88,7 +76,7 @@ include_once("./layout/_header.php");
             <!-- Adicione esta parte para exibir o idProduto -->
             <div class="form-group">
                 <label for="idProduto">Código Produto</label>
-                <input type="text" class="form-control" id="idProduto" name="idProduto" value="<?= $idProduto ?>" required />
+                <input type="text" class="form-control" id="idProduto" name="idProduto" value="<?= $idProduto ?>" readonly />
             </div>
 
             <div class="form-group">
@@ -120,3 +108,8 @@ include_once("./layout/_header.php");
             <a class="btn btn-primary" href="index.php">Voltar</a>
         </div>
     </form>
+</div>
+
+<?php
+include_once("./layout/_footer.php");
+?>
