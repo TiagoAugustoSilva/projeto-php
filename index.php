@@ -2,11 +2,24 @@
 
 require_once("conexao.php");
 
+//atenção este get está associado ao botão excluir, junto ao get global do código.
+if (isset($_GET['excluir'])) {
+    $idProduto = filter_input(INPUT_GET, 'excluir', FILTER_SANITIZE_NUMBER_INT);
+
+    if($idProduto);
+    $conn->exec('DELETE FROM cadastrar_produto WHERE idProduto=' . $idProduto);
+
+    header('Location: index.php');
+    exit;
+  
+}
+
 $results = $conn->query("select * from cadastrar_produto")->fetchAll();
 
 $arrayDescricao = [1 => 'Eletrônicos', 2 => 'Informática', 3 => 'Domésticos', 4 => 'Celulares', 5 => 'Acessórios'];
 
 include_once("./layout/_header.php");
+
 
 ?>
 
@@ -34,6 +47,7 @@ include_once("./layout/_header.php");
         <table class="table table-striped custom-table">
             <thead>
                 <tr>
+                    <th>Código </th>
                     <th>Produto</th>
                     <th>Descrição</th>
                     <th>Valor Unitário</th>
@@ -43,13 +57,15 @@ include_once("./layout/_header.php");
             <tbody>
                 <?php foreach ($results as $item) : ?>
                     <tr>
+                        <td><?= $item['idProduto'] ?></td>
                         <td><?= $item['produto'] ?></td>
                         <td><?= $arrayDescricao[$item['descricao']] ?></td>
                         <td><?= $item['valor_unitario'] ?></td>
                         <td><?= $item['unidade_medida'] ?></td>
                         <!--área abaixo onde colocamos os nosso btn(Buttons) lembrando que btn-primary botão azul e btn-danger-botão vermelho-->
-                        <td><a class="btn btn-sm btn-primary" href="cadastro.php?id=<?= $item['id']?>">Editar</a>
-                        <button class="btn btn-sm btn-danger">Excluir</button>
+                        <td>
+                            <a class="btn btn-sm btn-primary" href="cadastro.php?id=<?= $item['idProduto'] ?>">Editar</a>
+                            <button class="btn btn-sm btn-danger" onclick="excluir(<?=$item['idProduto']?>)">Excluir</button>
                         </td>
 
                     </tr>
@@ -60,6 +76,15 @@ include_once("./layout/_header.php");
     </div>
 </div>
 
+<script>   
+ function excluir(idProduto) {
+    if (confirm("Deseja Excluir este cadastro?")) {
+        window.location.href = "index.php?excluir=" + idProduto;
+    }
+ }
+
+</script>
+
 <?php
 include_once("./layout/_footer.php");
 ?>
@@ -67,5 +92,3 @@ include_once("./layout/_footer.php");
 
 
 
-<?php
-include_once("./layout/_footer.php"); ?>
